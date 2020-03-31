@@ -284,6 +284,11 @@ export interface Encoding<F extends Field> {
   url?: StringFieldDefWithCondition<F> | StringValueOrSignalDefWithCondition<F>;
 
   /**
+   * A string that labels the axis group for accessibility.
+   */
+  ariaLabel?: StringFieldDefWithCondition<F> | StringValueOrSignalWithCondition<F> | StringFieldDef<F>[];
+
+  /**
    * Order of the marks.
    * - For stacked marks, this `order` channel encodes [stack order](https://vega.github.io/vega-lite/docs/stack.html#order).
    * - For line and trail marks, this `order` channel encodes order of data points in the lines. This can be useful for creating [a connected scatterplot](https://vega.github.io/vega-lite/examples/connected_scatterplot.html). Setting `order` to `{"value": null}` makes the line marks use the original order in the data sources.
@@ -600,6 +605,7 @@ export function pathGroupingFields(mark: Mark, encoding: Encoding<string>): stri
       case 'x':
       case 'y':
       case 'href':
+      case 'ariaLabel':
       case 'url':
       case 'x2':
       case 'y2':

@@ -15,7 +15,7 @@ import {
 import {Config} from '../../../config';
 import {Encoding, forEach} from '../../../encoding';
 import {StackProperties} from '../../../stack';
-import {getFirstDefined} from '../../../util';
+import {getFirstDefined, Dict, entries} from '../../../util';
 import {getMarkConfig} from '../../common';
 import {binFormatExpression, formatSignalRef} from '../../format';
 import {UnitModel} from '../../unit';
@@ -23,14 +23,14 @@ import {wrapCondition} from './conditional';
 import {textRef} from './text';
 
 export function tooltip(model: UnitModel, opt: {reactiveGeom?: boolean} = {}) {
-  const {encoding, markDef, config} = model;
+  const {encoding, markDef, config, stack} = model;
   const channelDef = encoding.tooltip;
   if (isArray(channelDef)) {
-    return {tooltip: tooltipRefForEncoding({tooltip: channelDef}, model.stack, config, opt)};
+    return {tooltip: tooltipRefForEncoding(tooltipData({tooltip: channelDef}, stack, config, opt))};
   } else {
     return wrapCondition(model, channelDef, 'tooltip', cDef => {
       // use valueRef based on channelDef first
-      const tooltipRefFromChannelDef = textRef(cDef, model.config, opt.reactiveGeom ? 'datum.datum' : 'datum');
+      const tooltipRefFromChannelDef = textRef(cDef, config, opt.reactiveGeom ? 'datum.datum' : 'datum');
       if (tooltipRefFromChannelDef) {
         return tooltipRefFromChannelDef;
       }
@@ -52,7 +52,7 @@ export function tooltip(model: UnitModel, opt: {reactiveGeom?: boolean} = {}) {
       } else if (isObject(markTooltip)) {
         // `tooltip` is `{fields: 'encodings' | 'fields'}`
         if (markTooltip.content === 'encoding') {
-          return tooltipRefForEncoding(encoding, model.stack, config, opt);
+          return tooltipRefForEncoding(tooltipData(encoding, stack, config, opt));
         } else {
           return {signal: 'datum'};
         }
@@ -63,17 +63,15 @@ export function tooltip(model: UnitModel, opt: {reactiveGeom?: boolean} = {}) {
   }
 }
 
-export function tooltipRefForEncoding(
+export function tooltipData(
   encoding: Encoding<string>,
   stack: StackProperties,
   config: Config,
   {reactiveGeom}: {reactiveGeom?: boolean} = {}
 ) {
-  const keyValues: string[] = [];
-  const usedKey = {};
   const toSkip = {};
   const expr = reactiveGeom ? 'datum.datum' : 'datum';
-  const tooltipTuples: {channel: Channel; key: string; value: string}[] = [];
+  const tuples: {channel: Channel; key: string; value: string}[] = [];
 
   function add(fDef: TypedFieldDef<string> | SecondaryFieldDef<string>, channel: Channel) {
     const mainChannel = getMainRangeChannel(channel);
@@ -106,7 +104,7 @@ export function tooltipRefForEncoding(
       }
     }
 
-    tooltipTuples.push({channel, key, value});
+    tuples.push({channel, key, value});
   }
 
   forEach(encoding, (channelDef, channel) => {
@@ -117,12 +115,17 @@ export function tooltipRefForEncoding(
     }
   });
 
-  for (const {channel, key, value} of tooltipTuples) {
-    if (!toSkip[channel] && !usedKey[key]) {
-      keyValues.push(`${stringValue(key)}: ${value}`);
-      usedKey[key] = true;
+  const out = {};
+  for (const {channel, key, value} of tuples) {
+    if (!toSkip[channel] && !out[key]) {
+      out[stringValue(key)] = value;
     }
   }
 
+  return out;
+}
+
+export function tooltipRefForEncoding(data: Dict<string>) {
+  const keyValues = entries(data).map(({key, value}) => `${key}: ${value}`);
   return keyValues.length > 0 ? {signal: `{${keyValues.join(', ')}}`} : undefined;
 }

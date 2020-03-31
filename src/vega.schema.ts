@@ -291,6 +291,10 @@ export type StrokeJoin = 'miter' | 'round' | 'bevel';
 export type Dir = 'ltr' | 'rtl';
 
 const VG_MARK_CONFIG_INDEX: Flag<keyof MarkConfig> = {
+  ariaHidden: 1,
+  ariaLabel: 1,
+  ariaRole: 1,
+  ariaRoleDescription: 1,
   blend: 1,
   opacity: 1,
   fill: 1,

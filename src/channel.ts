@@ -66,6 +66,8 @@ export const HREF: 'href' = 'href';
 
 export const URL: 'url' = 'url';
 
+export const ARIA_LABEL: 'ariaLabel' = 'ariaLabel';
+
 export type PositionChannel = 'x' | 'y' | 'x2' | 'y2';
 
 const POSITION_CHANNEL_INDEX: Flag<PositionChannel> = {
@@ -148,7 +150,8 @@ const UNIT_CHANNEL_INDEX: Flag<keyof Encoding<any>> = {
   key: 1,
   tooltip: 1,
   href: 1,
-  url: 1
+  url: 1,
+  ariaLabel: 1
 };
 
 export type ColorChannel = 'color' | 'fill' | 'stroke';
@@ -331,6 +334,7 @@ const {
   tooltip: _tt,
   href: _hr,
   url: _u,
+  ariaLabel: _al,
   // detail and order have no scale
   detail: _dd,
   key: _k,
@@ -424,6 +428,7 @@ function getSupportedMark(channel: Channel): SupportedMark {
     case STROKE:
     // falls through
 
+    case ARIA_LABEL:
     case DETAIL:
     case KEY:
     case TOOLTIP:
@@ -534,6 +539,7 @@ export function rangeType(channel: Channel): RangeType {
     case TOOLTIP:
     case HREF:
     case URL:
+    case ARIA_LABEL:
       return 'discrete';
 
     // Color can be either continuous or discrete, depending on scale type.
